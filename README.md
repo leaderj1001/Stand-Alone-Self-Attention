@@ -41,9 +41,12 @@
     
 | Datasets | Model | Accuracy | Epoch | Parameters (My Model, Paper Model)
 | :---: | :---: | :---: | :---: | :---: |
-CIFAR-10 | ResNet 26 (WORK IN PROCESS) | | | 10.3M, 10.3M
-CIFAR-10 | ResNet 38 (WORK IN PROCESS) | | | 14.1M, 14.1M
-CIFAR-10 | ResNet 50 (WORK IN PROCESS) | | | 18.0M, 18.0M
+CIFAR-10 | ResNet 26 (WORK IN PROCESS) | | | 8.29M, -
+CIFAR-10 | ResNet 38 (WORK IN PROCESS) | | | 12.1M, -
+CIFAR-10 | ResNet 50 (WORK IN PROCESS) | | | 15.9M, -
+IMAGENET | ResNet 26 (WORK IN PROCESS) | | | 10.3M, 10.3M
+IMAGENET | ResNet 38 (WORK IN PROCESS) | | | 14.1M, 14.1M
+IMAGENET | ResNet 50 (WORK IN PROCESS) | | | 18.0M, 18.0M
 
 ## Usage
 
