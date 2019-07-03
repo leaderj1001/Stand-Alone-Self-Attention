@@ -10,7 +10,21 @@
   - Awesome :)
 
 ## Method
-  1. Replacing Spatial Convolutions
+  1. Replacing Spatial Convolutions<br>
+    - **Attention Layer**<br>
+      <img src='https://user-images.githubusercontent.com/22078438/60595767-a7821280-9de2-11e9-891a-38dd49c25377.PNG' height='450' width='800'><br>
+      - Equation:<br><br>
+      ![CodeCogsEqn (2)](https://user-images.githubusercontent.com/22078438/60596611-5a06a500-9de4-11e9-9116-4d1641f4b84d.gif)<br><br>
+    - **Relative Position Embedding**<br>
+      <img src='https://user-images.githubusercontent.com/22078438/60596076-34c56700-9de3-11e9-9beb-c03f8842d8b8.PNG' height='400'><br>
+      - The row and column offsets are associated with an embedding ![CodeCogsEqn (3)](https://user-images.githubusercontent.com/22078438/60596887-da2d0a80-9de4-11e9-936d-73f5159aa8b9.gif) and ![CodeCogsEqn (4)](https://user-images.githubusercontent.com/22078438/60596947-f9c43300-9de4-11e9-8630-7f4674c7f0c8.gif) respectively each with dimension ![CodeCogsEqn (5)](https://user-images.githubusercontent.com/22078438/60597007-182a2e80-9de5-11e9-9d44-c383e19f55b9.gif). The row and column offset embeddings are concatenated to form ![CodeCogsEqn (6)](https://user-images.githubusercontent.com/22078438/60597062-38f28400-9de5-11e9-8010-ee05512222b5.gif). This spatial-relative attention is now defined as below equation.
+      - Equation:<br><br>
+      ![CodeCogsEqn (7)](https://user-images.githubusercontent.com/22078438/60597197-7b1bc580-9de5-11e9-890a-6225db5a1108.gif)
+      
+      - I refer to the following paper when implementing this part.
+        - [Attention Augemnted Convolutional Networks paper](https://arxiv.org/abs/1904.09925)
+
+
   2. Replacing the Convolutional Stem
   3. Attention Stem
 
@@ -22,7 +36,7 @@
     - ResNet 26: [1, 2, 4, 1]
     - ResNet 38: [2, 3, 5, 2]
     - ResNet 50: [3, 4, 6, 3]
-
+  <img src='https://user-images.githubusercontent.com/22078438/60596428-f54b4a80-9de3-11e9-85bf-e585f9be982c.PNG' height='600' width='800'>
   
 ## Requirements
   - 
