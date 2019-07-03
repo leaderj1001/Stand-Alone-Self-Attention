@@ -38,13 +38,28 @@
     - ResNet 26: [1, 2, 4, 1]
     - ResNet 38: [2, 3, 5, 2]
     - ResNet 50: [3, 4, 6, 3]
-  <img src='https://user-images.githubusercontent.com/22078438/60596428-f54b4a80-9de3-11e9-85bf-e585f9be982c.PNG' height='600' width='800'>
-  
+  <img src='https://user-images.githubusercontent.com/22078438/60596428-f54b4a80-9de3-11e9-85bf-e585f9be982c.PNG' height='600' width='800'><br>
+### Experiments
+
+| Datasets | Model | Accuracy | Epoch | Parameters |
+| :---: | :---: | :---: | :---: | :---: |
+CIFAR-10 | ResNet 26 (WORK IN PROCESS) | | | 10.3M
+CIFAR-10 | ResNet 38 (WORK IN PROCESS) | | | 14.1M
+CIFAR-10 | ResNet 50 (WORK IN PROCESS) | | | 18.0M
+
+## Usage
+```python
+
+```
+
 ## Requirements
-  - 
+  - torch==1.0.1
 
 ## Todo
-  - 
+  - Experiments
+  - IMAGENET
+  - Review relative position embedding, attention stem
+  - Code Refactoring
 
 ## Reference
   - [ResNet Pytorch CIFAR](https://github.com/kuangliu/pytorch-cifar)
