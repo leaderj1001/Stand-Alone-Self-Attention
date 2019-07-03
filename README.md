@@ -10,23 +10,25 @@
   - Awesome :)
 
 ## Method
-  1. Replacing Spatial Convolutions<br>
-    - **Attention Layer**<br>
-      <img src='https://user-images.githubusercontent.com/22078438/60595767-a7821280-9de2-11e9-891a-38dd49c25377.PNG' height='450' width='800'><br>
-      - Equation:<br><br>
-      ![CodeCogsEqn (2)](https://user-images.githubusercontent.com/22078438/60596611-5a06a500-9de4-11e9-9116-4d1641f4b84d.gif)<br><br>
-    - **Relative Position Embedding**<br>
-      <img src='https://user-images.githubusercontent.com/22078438/60596076-34c56700-9de3-11e9-9beb-c03f8842d8b8.PNG' height='400'><br>
-      - The row and column offsets are associated with an embedding ![CodeCogsEqn (3)](https://user-images.githubusercontent.com/22078438/60596887-da2d0a80-9de4-11e9-936d-73f5159aa8b9.gif) and ![CodeCogsEqn (4)](https://user-images.githubusercontent.com/22078438/60596947-f9c43300-9de4-11e9-8630-7f4674c7f0c8.gif) respectively each with dimension ![CodeCogsEqn (5)](https://user-images.githubusercontent.com/22078438/60597007-182a2e80-9de5-11e9-9d44-c383e19f55b9.gif). The row and column offset embeddings are concatenated to form ![CodeCogsEqn (6)](https://user-images.githubusercontent.com/22078438/60597062-38f28400-9de5-11e9-8010-ee05512222b5.gif). This spatial-relative attention is now defined as below equation.
-      - Equation:<br><br>
-      ![CodeCogsEqn (7)](https://user-images.githubusercontent.com/22078438/60597197-7b1bc580-9de5-11e9-890a-6225db5a1108.gif)
+  - **Attention Layer**<br>
+    <img src='https://user-images.githubusercontent.com/22078438/60595767-a7821280-9de2-11e9-891a-38dd49c25377.PNG' height='300' width='500'><br>
+    - Equation 1:<br><br>
+    ![CodeCogsEqn (2)](https://user-images.githubusercontent.com/22078438/60596611-5a06a500-9de4-11e9-9116-4d1641f4b84d.gif)<br><br>
+  - **Relative Position Embedding**<br>
+    <img src='https://user-images.githubusercontent.com/22078438/60596076-34c56700-9de3-11e9-9beb-c03f8842d8b8.PNG' height='400'><br>
+    - The row and column offsets are associated with an embedding ![CodeCogsEqn (3)](https://user-images.githubusercontent.com/22078438/60596887-da2d0a80-9de4-11e9-936d-73f5159aa8b9.gif) and ![CodeCogsEqn (4)](https://user-images.githubusercontent.com/22078438/60596947-f9c43300-9de4-11e9-8630-7f4674c7f0c8.gif) respectively each with dimension ![CodeCogsEqn (5)](https://user-images.githubusercontent.com/22078438/60597007-182a2e80-9de5-11e9-9d44-c383e19f55b9.gif). The row and column offset embeddings are concatenated to form ![CodeCogsEqn (6)](https://user-images.githubusercontent.com/22078438/60597062-38f28400-9de5-11e9-8010-ee05512222b5.gif). This spatial-relative attention is now defined as below equation.
+    - Equation 2:<br><br>
+    ![CodeCogsEqn (7)](https://user-images.githubusercontent.com/22078438/60597197-7b1bc580-9de5-11e9-890a-6225db5a1108.gif)
       
-      - I refer to the following paper when implementing this part.
-        - [Attention Augemnted Convolutional Networks paper](https://arxiv.org/abs/1904.09925)
-
-
-  2. Replacing the Convolutional Stem
-  3. Attention Stem
+    - I refer to the following paper when implementing this part.
+      - [Attention Augemnted Convolutional Networks paper](https://arxiv.org/abs/1904.09925)
+      
+  1. Replacing Spatial Convolutions<br>
+    - A **2 × 2 average pooling with stride 2 operation follows the attention layer** whenever spatial downsampling is required.
+    - This work applies the transform on the ResNet family of architectures. **The proposed transform swaps the 3 × 3 spatial convolution with a self-attention layer as defined in Equation 3.**
+  2. Replacing the Convolutional Stem<br>
+    - The initial layers of a CNN, sometimes referred to as **the stem, play a critical role** in learning local features such as edges, which later layers use to identify global objects.
+    - The stem performs **self-attention within each 4 × 4 spatial block of the original image, followed by batch normalization and a 4 × 4 max pool operation.**
 
 ## Experiments
 ### Setup
