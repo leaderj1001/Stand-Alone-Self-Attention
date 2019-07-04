@@ -75,7 +75,7 @@ def main(args):
     train_loader, test_loader = load_data(args)
 
     if args.pretrained_model:
-        model = ResNet26()
+        model = ResNet26(args)
         filename = './checkpoint/best_model_ckpt.t7'
         checkpoint = torch.load(filename)
         model.load_state_dict(checkpoint['model'])
@@ -84,7 +84,7 @@ def main(args):
         model_parameters = checkpoint['parameters']
         print('Load model, Parameters: {0}, Start_epoch: {1}, Acc: {2}'.format(model_parameters, start_epoch, max_acc))
     else:
-        model = ResNet26()
+        model = ResNet26(args)
         start_epoch = 1
         max_acc = 0.0
 
