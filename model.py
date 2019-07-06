@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from attention import AttentionConv, AttentionStem
-from config import get_args
 
 
 class Bottleneck(nn.Module):
@@ -50,18 +49,18 @@ class Bottleneck(nn.Module):
 
 
 class Model(nn.Module):
-    def __init__(self, block, num_blocks, args, num_classes=10):
+    def __init__(self, block, num_blocks, img_size=224, num_classes=1000, stem=False):
         super(Model, self).__init__()
         self.in_places = 64
 
-        if args.stem == 'attention':
+        if stem:
             self.init = nn.Sequential(
-                AttentionStem(3, 64, kernel_size=4, stride=1, padding=2, groups=4),
+                AttentionStem(img_size=img_size, in_channels=3, out_channels=64, kernel_size=4, stride=1, padding=2, groups=4),
                 nn.BatchNorm2d(64),
                 nn.ReLU(),
                 nn.MaxPool2d(4, 4)
             )
-        if args.stem == 'conv':
+        else:
             self.init = nn.Sequential(
                 # nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False),
                 nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False),
@@ -97,16 +96,16 @@ class Model(nn.Module):
         return out
 
 
-def ResNet26(args):
-    return Model(Bottleneck, [1, 2, 4, 1], args)
+def ResNet26(img_size=224, num_classes=1000, stem=False):
+    return Model(Bottleneck, [1, 2, 4, 1], img_size=img_size, num_classes=num_classes, stem=stem)
 
 
-def ResNet38(args):
-    return Model(Bottleneck, [2, 3, 5, 2], args)
+def ResNet38(img_size=224, num_classes=1000, stem=False):
+    return Model(Bottleneck, [2, 3, 5, 2], img_size=img_size, num_classes=num_classes, stem=stem)
 
 
-def ResNet50(args):
-    return Model(Bottleneck, [3, 4, 6, 3], args)
+def ResNet50(img_size=224, num_classes=1000, stem=False):
+    return Model(Bottleneck, [3, 4, 6, 3], img_size=img_size, num_classes=num_classes, stem=stem)
 
 
 def get_model_parameters(model):
@@ -120,7 +119,6 @@ def get_model_parameters(model):
 
 
 # temp = torch.randn((2, 3, 32, 32))
-# args = get_args()
-# model = ResNet50(args)
+# model = ResNet38(img_size=32, num_classes=1000, stem=False)
 # print(get_model_parameters(model))
 # model(temp)
