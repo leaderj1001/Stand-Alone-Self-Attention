@@ -14,6 +14,9 @@ class AttentionConv(nn.Module):
 
         assert self.out_channels % self.groups == 0, "out_channels should be divided by groups. (example: out_channels: 40, groups: 4)"
 
+        self.rel_h = nn.Parameter(torch.randn(out_channels // 2, 1, 1, kernel_size, 1))
+        self.rel_w = nn.Parameter(torch.randn(out_channels // 2, 1, 1, 1, kernel_size))
+
         self.key_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
         self.query_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
         self.value_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
@@ -29,18 +32,15 @@ class AttentionConv(nn.Module):
         k_out = k_out.unfold(2, self.kernel_size, self.stride).unfold(3, self.kernel_size, self.stride)
         v_out = v_out.unfold(2, self.kernel_size, self.stride).unfold(3, self.kernel_size, self.stride)
 
+        v_out_h, v_out_w = v_out.split(self.out_channels // 2, dim=1)
+        v_out = torch.cat((v_out_h + self.rel_h, v_out_w + self.rel_w), dim=1)
+
         k_out = k_out.contiguous().view(batch, self.groups, self.out_channels // self.groups, height, width, -1)
         v_out = v_out.contiguous().view(batch, self.groups, self.out_channels // self.groups, height, width, -1)
 
-        rel_w = nn.Parameter(torch.randn(self.out_channels, width)).to(x)
-        rel_logit_w = torch.einsum('bchw,cw->bchw', q_out, rel_w).view(batch, self.groups, self.out_channels // self.groups, height, width, 1)
-
-        rel_h = nn.Parameter(torch.randn(self.out_channels, height)).to(x)
-        rel_logit_h = torch.einsum('bchw,ch->bchw', q_out, rel_h).view(batch, self.groups, self.out_channels // self.groups, height, width, 1)
-
         q_out = q_out.view(batch, self.groups, self.out_channels // self.groups, height, width, 1)
 
-        out = q_out * k_out + rel_logit_w + rel_logit_h
+        out = q_out * k_out
         out = F.softmax(out, dim=-1)
         out = torch.einsum('bnchwk,bnchwk -> bnchw', out, v_out).view(batch, -1, height, width)
 
@@ -48,7 +48,7 @@ class AttentionConv(nn.Module):
 
 
 class AttentionStem(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, groups=1, bias=False):
+    def __init__(self, img_size, in_channels, out_channels, kernel_size, stride=1, padding=0, groups=1, bias=False):
         super(AttentionStem, self).__init__()
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -57,6 +57,10 @@ class AttentionStem(nn.Module):
         self.groups = groups
 
         assert self.out_channels % self.groups == 0, "out_channels should be divided by groups. (example: out_channels: 40, groups: 4)"
+
+        self.emb_a = nn.Parameter(torch.randn(self.out_channels // self.groups, img_size))
+        self.emb_b = nn.Parameter(torch.randn(self.out_channels // self.groups, img_size))
+        self.emb_mix = nn.Parameter(torch.randn(self.out_channels // self.groups, img_size, img_size))
 
         self.key_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
         self.query_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
@@ -80,14 +84,9 @@ class AttentionStem(nn.Module):
         k_out = k_out.contiguous().view(batch, self.groups, self.out_channels // self.groups, height, width, -1)
         v_out = v_out.contiguous().view(batch, self.groups, self.out_channels // self.groups, height, width, -1)
 
-        emb_a = nn.Parameter(torch.randn(self.out_channels // self.groups, width)).to(x)
-        emb_logit_a = torch.einsum('bnchwk,cw->bnchwk', v_out, emb_a)
-
-        emb_b = nn.Parameter(torch.randn(self.out_channels // self.groups, height)).to(x)
-        emb_logit_b = torch.einsum('bnchwk,ch->bnchwk', v_out, emb_b)
-
-        emb_mix = nn.Parameter(torch.randn(self.out_channels // self.groups, height, width)).to(x)
-        emb_logit_mix = torch.einsum('bnchwk,chw->bnchwk', v_out, emb_mix)
+        emb_logit_a = torch.einsum('bnchwk,cw->bnchwk', v_out, self.emb_a)
+        emb_logit_b = torch.einsum('bnchwk,ch->bnchwk', v_out, self.emb_b)
+        emb_logit_mix = torch.einsum('bnchwk,chw->bnchwk', v_out, self.emb_mix)
 
         embedding = (emb_logit_a + emb_logit_b) * emb_logit_mix
         embedding = F.softmax(embedding, dim=-1)
