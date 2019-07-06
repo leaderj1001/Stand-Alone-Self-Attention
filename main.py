@@ -6,7 +6,7 @@ import torch.optim as optim
 import os
 from tqdm import tqdm
 
-from config import get_args
+from config import get_args, get_logger
 from model import ResNet50, ResNet38, ResNet26
 from preprocess import load_data
 
@@ -18,7 +18,7 @@ def adjust_learning_rate(optimizer, epoch, args):
         param_group['lr'] = lr
 
 
-def train(model, train_loader, optimizer, criterion, epoch, args):
+def train(model, train_loader, optimizer, criterion, epoch, args, logger):
     model.train()
 
     train_acc = 0.0
@@ -40,16 +40,19 @@ def train(model, train_loader, optimizer, criterion, epoch, args):
         train_acc += acc
         step += 1
         if step % args.print_interval == 0:
-            print("[Epoch {0:4d}] Loss: {1:2.3f} Acc: {2:.3f}%".format(epoch, loss.data, acc), end='')
+            # print("[Epoch {0:4d}] Loss: {1:2.3f} Acc: {2:.3f}%".format(epoch, loss.data, acc), end='')
+            logger.info("[Epoch {0:4d}] Loss: {1:2.3f} Acc: {2:.3f}%".format(epoch, loss.data, acc))
             for param_group in optimizer.param_groups:
-                print(",  Current learning rate is: {}".format(param_group['lr']))
+                # print(",  Current learning rate is: {}".format(param_group['lr']))
+                logger.info("Current learning rate is: {}".format(param_group['lr']))
 
 
 def eval(model, test_loader, args):
+    print('evaluation ...')
     model.eval()
     correct = 0
     with torch.no_grad():
-        for data, target in tqdm(test_loader, desc="eval", mininterval=1):
+        for data, target in test_loader:
             if args.cuda:
                 data, target = data.cuda(), target.cuda()
             output = model(data)
@@ -71,20 +74,36 @@ def get_model_parameters(model):
     return total_parameters
 
 
-def main(args):
+def main(args, logger):
     train_loader, test_loader = load_data(args)
+    if args.dataset == 'CIFAR10':
+        num_classes = 10
+    elif args.dataset == 'CIFAR100':
+        num_classes = 100
+    elif args.dataset == 'IMAGENET':
+        num_classes = 1000
+
+    print('img_size: {}, num_classes: {}, stem: {}'.format(args.img_size, num_classes, args.stem))
+    if args.model_name == 'ResNet26':
+        print('Model Name: {0}'.format(args.model_name))
+        model = ResNet26(img_size=args.img_size, num_classes=num_classes, stem=args.stem)
+    elif args.model_name == 'ResNet38':
+        print('Model Name: {0}'.format(args.model_name))
+        model = ResNet38(img_size=args.img_size, num_classes=num_classes, stem=args.stem)
+    elif args.model_name == 'ResNet50':
+        print('Model Name: {0}'.format(args.model_name))
+        model = ResNet50(img_size=args.img_size, num_classes=num_classes, stem=args.stem)
 
     if args.pretrained_model:
-        model = ResNet26(args)
         filename = './checkpoint/best_model_ckpt.t7'
         checkpoint = torch.load(filename)
         model.load_state_dict(checkpoint['model'])
         start_epoch = checkpoint['epoch']
         max_acc = checkpoint['acc']
         model_parameters = checkpoint['parameters']
-        print('Load model, Parameters: {0}, Start_epoch: {1}, Acc: {2}'.format(model_parameters, start_epoch, max_acc))
+        # print('Load model, Parameters: {0}, Start_epoch: {1}, Acc: {2}'.format(model_parameters, start_epoch, max_acc))
+        logger.info('Load model, Parameters: {0}, Start_epoch: {1}, Acc: {2}'.format(model_parameters, start_epoch, max_acc))
     else:
-        model = ResNet26(args)
         start_epoch = 1
         max_acc = 0.0
 
@@ -92,12 +111,13 @@ def main(args):
     if args.cuda:
         model = model.cuda()
         criterion = criterion.cuda()
-    print("Number of model parameters: ", get_model_parameters(model))
+    # print("Number of model parameters: ", get_model_parameters(model))
+    logger.info("Number of model parameters: {0}".format(get_model_parameters(model)))
 
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
     for epoch in range(start_epoch, args.epochs + 1):
-        train(model, train_loader, optimizer, criterion, epoch, args)
+        train(model, train_loader, optimizer, criterion, epoch, args, logger)
         eval_acc = eval(model, test_loader, args)
 
         if max_acc < eval_acc:
@@ -117,5 +137,5 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = get_args()
-    main(args)
+    args, logger = get_args()
+    main(args, logger)
