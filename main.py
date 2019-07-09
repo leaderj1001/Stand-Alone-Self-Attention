@@ -95,8 +95,11 @@ def main(args, logger):
         model = ResNet50(img_size=args.img_size, num_classes=num_classes, stem=args.stem)
 
     if args.pretrained_model:
-        filename = './checkpoint/best_model_ckpt.t7'
-        checkpoint = torch.load(filename)
+        filename = 'model_' + str(args.dataset) + '_' + str(args.model_name) + '_' + str(args.stem) + '_ckpt.t7'
+        print('filename :: ', filename)
+        weight_path = './checkpoint'
+        file_path = os.path.join(weight_path, filename)
+        checkpoint = torch.load(file_path)
         model.load_state_dict(checkpoint['model'])
         start_epoch = checkpoint['epoch']
         max_acc = checkpoint['acc']
@@ -132,8 +135,11 @@ def main(args, logger):
             }
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
-            filename = './checkpoint/best_model_ckpt.t7'
-            torch.save(state, filename)
+            filename = 'model_' + str(args.dataset) + '_' + str(args.model_name) + '_' + str(args.stem) + '_ckpt.t7'
+            print('filename :: ', filename)
+            weight_path = './checkpoint'
+            file_path = os.path.join(weight_path, filename)
+            torch.save(state, file_path)
 
 
 if __name__ == '__main__':
