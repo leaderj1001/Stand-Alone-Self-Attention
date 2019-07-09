@@ -116,9 +116,3 @@ def get_model_parameters(model):
             layer_parameter *= l
         total_parameters += layer_parameter
     return total_parameters
-
-
-# temp = torch.randn((2, 3, 32, 32))
-# model = ResNet38(img_size=32, num_classes=1000, stem=False)
-# print(get_model_parameters(model))
-# model(temp)
