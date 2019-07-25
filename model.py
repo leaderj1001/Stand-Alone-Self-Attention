@@ -49,23 +49,34 @@ class Bottleneck(nn.Module):
 
 
 class Model(nn.Module):
-    def __init__(self, block, num_blocks, img_size=224, num_classes=1000, stem=False):
+    def __init__(self, block, num_blocks, num_classes=1000, stem=False):
         super(Model, self).__init__()
         self.in_places = 64
 
         if stem:
             self.init = nn.Sequential(
-                AttentionStem(img_size=img_size, in_channels=3, out_channels=64, kernel_size=4, stride=1, padding=2, groups=4),
+                # CIFAR10
+                AttentionStem(in_channels=3, out_channels=64, kernel_size=4, stride=1, padding=2, groups=1),
                 nn.BatchNorm2d(64),
                 nn.ReLU(),
-                nn.MaxPool2d(4, 4)
+
+                # For ImageNet
+                # AttentionStem(in_channels=3, out_channels=64, kernel_size=4, stride=1, padding=2, groups=1),
+                # nn.BatchNorm2d(64),
+                # nn.ReLU(),
+                # nn.MaxPool2d(4, 4)
             )
         else:
             self.init = nn.Sequential(
-                # nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False),
+                # CIFAR10
                 nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False),
                 nn.BatchNorm2d(64),
                 nn.ReLU(),
+
+                # For ImageNet
+                # nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False),
+                # nn.BatchNorm2d(64),
+                # nn.ReLU(),
                 # nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
             )
 
@@ -96,16 +107,16 @@ class Model(nn.Module):
         return out
 
 
-def ResNet26(img_size=224, num_classes=1000, stem=False):
-    return Model(Bottleneck, [1, 2, 4, 1], img_size=img_size, num_classes=num_classes, stem=stem)
+def ResNet26(num_classes=1000, stem=False):
+    return Model(Bottleneck, [1, 2, 4, 1], num_classes=num_classes, stem=stem)
 
 
-def ResNet38(img_size=224, num_classes=1000, stem=False):
-    return Model(Bottleneck, [2, 3, 5, 2], img_size=img_size, num_classes=num_classes, stem=stem)
+def ResNet38(num_classes=1000, stem=False):
+    return Model(Bottleneck, [2, 3, 5, 2], num_classes=num_classes, stem=stem)
 
 
-def ResNet50(img_size=224, num_classes=1000, stem=False):
-    return Model(Bottleneck, [3, 4, 6, 3], img_size=img_size, num_classes=num_classes, stem=stem)
+def ResNet50(num_classes=1000, stem=False):
+    return Model(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, stem=stem)
 
 
 def get_model_parameters(model):
@@ -116,3 +127,8 @@ def get_model_parameters(model):
             layer_parameter *= l
         total_parameters += layer_parameter
     return total_parameters
+
+
+# temp = torch.randn((2, 3, 224, 224))
+# model = ResNet38(num_classes=1000, stem=True)
+# print(get_model_parameters(model))
