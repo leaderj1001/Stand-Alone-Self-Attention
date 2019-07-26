@@ -4,6 +4,7 @@ from torchvision import datasets, transforms
 
 
 def load_data(args):
+    print('Load Dataset :: {}'.format(args.dataset))
     if args.dataset == 'CIFAR10':
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
