@@ -5,6 +5,7 @@ import torch.optim as optim
 
 import os
 from tqdm import tqdm
+import shutil
 
 from config import get_args, get_logger
 from model import ResNet50, ResNet38, ResNet26
@@ -95,51 +96,73 @@ def main(args, logger):
         model = ResNet50(num_classes=num_classes, stem=args.stem)
 
     if args.pretrained_model:
-        filename = 'model_' + str(args.dataset) + '_' + str(args.model_name) + '_' + str(args.stem) + '_ckpt.t7'
+        filename = 'best_model_' + str(args.dataset) + '_' + str(args.model_name) + '_' + str(args.stem) + '_ckpt.tar'
         print('filename :: ', filename)
-        weight_path = './checkpoint'
-        file_path = os.path.join(weight_path, filename)
+        file_path = os.path.join('./checkpoint', filename)
         checkpoint = torch.load(file_path)
-        model.load_state_dict(checkpoint['model'])
+
+        model.load_state_dict(checkpoint['state_dict'])
         start_epoch = checkpoint['epoch']
-        max_acc = checkpoint['acc']
+        best_acc = checkpoint['best_acc']
         model_parameters = checkpoint['parameters']
-        # print('Load model, Parameters: {0}, Start_epoch: {1}, Acc: {2}'.format(model_parameters, start_epoch, max_acc))
-        logger.info('Load model, Parameters: {0}, Start_epoch: {1}, Acc: {2}'.format(model_parameters, start_epoch, max_acc))
+        print('Load model, Parameters: {0}, Start_epoch: {1}, Acc: {2}'.format(model_parameters, start_epoch, best_acc))
+        logger.info('Load model, Parameters: {0}, Start_epoch: {1}, Acc: {2}'.format(model_parameters, start_epoch, best_acc))
     else:
         start_epoch = 1
-        max_acc = 0.0
+        best_acc = 0.0
 
-    criterion = nn.CrossEntropyLoss()
     if args.cuda:
+        if torch.cuda.device_count() > 1:
+            model = nn.DataParallel(model)
         model = model.cuda()
-        criterion = criterion.cuda()
-    # print("Number of model parameters: ", get_model_parameters(model))
+
+    print("Number of model parameters: ", get_model_parameters(model))
     logger.info("Number of model parameters: {0}".format(get_model_parameters(model)))
 
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
     for epoch in range(start_epoch, args.epochs + 1):
         train(model, train_loader, optimizer, criterion, epoch, args, logger)
         eval_acc = eval(model, test_loader, args)
 
-        if max_acc < eval_acc:
-            print('Model Saving ...')
-            max_acc = eval_acc
-            parameters = get_model_parameters(model)
-            state = {
-                'model': model.state_dict(),
-                'acc': max_acc,
+        is_best = eval_acc > best_acc
+        best_acc = max(eval_acc, best_acc)
+
+        if not os.path.isdir('checkpoint'):
+            os.mkdir('checkpoint')
+        filename = 'model_' + str(args.dataset) + '_' + str(args.model_name) + '_' + str(args.stem) + '_ckpt.tar'
+        print('filename :: ', filename)
+
+        parameters = get_model_parameters(model)
+
+        if torch.cuda.device_count() > 1:
+            save_checkpoint({
                 'epoch': epoch,
+                'arch': args.model_name,
+                'state_dict': model.module.state_dict(),
+                'best_acc': best_acc,
+                'optimizer': optimizer.state_dict(),
                 'parameters': parameters,
-            }
-            if not os.path.isdir('checkpoint'):
-                os.mkdir('checkpoint')
-            filename = 'model_' + str(args.dataset) + '_' + str(args.model_name) + '_' + str(args.stem) + '_ckpt.t7'
-            print('filename :: ', filename)
-            weight_path = './checkpoint'
-            file_path = os.path.join(weight_path, filename)
-            torch.save(state, file_path)
+            }, is_best, filename)
+        else:
+            save_checkpoint({
+                'epoch': epoch,
+                'arch': args.model_name,
+                'state_dict': model.state_dict(),
+                'best_acc': best_acc,
+                'optimizer': optimizer.state_dict(),
+                'parameters': parameters,
+            }, is_best, filename)
+
+
+def save_checkpoint(state, is_best, filename):
+    file_path = os.path.join('./checkpoint', filename)
+    torch.save(state, file_path)
+    best_file_path = os.path.join('./checkpoint', 'best_' + filename)
+    if is_best:
+        print('best Model Saving ...')
+        shutil.copyfile(file_path, best_file_path)
 
 
 if __name__ == '__main__':
