@@ -99,14 +99,10 @@ class AttentionStem(nn.Module):
 
         emb_logit_a = torch.einsum('mc,ca->ma', self.emb_mix, self.emb_a)
         emb_logit_b = torch.einsum('mc,cb->mb', self.emb_mix, self.emb_b)
-        emb = emb_logit_a + emb_logit_b
-        emb = F.softmax(emb, dim=-1)
+        emb = emb_logit_a.unsqueeze(2) + emb_logit_b.unsqueeze(1)
+        emb = F.softmax(emb.view(self.m, -1), dim=0).view(self.m, 1, 1, 1, 1, self.kernel_size, self.kernel_size)
 
-        emb_a = emb.view(self.m, 1, 1, 1, 1, self.kernel_size, 1)
-        emb_b = emb.view(self.m, 1, 1, 1, 1, 1, self.kernel_size)
-
-        v_out = emb_a * v_out
-        v_out = emb_b * v_out
+        v_out = emb * v_out
 
         k_out = k_out.contiguous().view(batch, self.groups, self.out_channels // self.groups, height, width, -1)
         v_out = v_out.contiguous().view(self.m, batch, self.groups, self.out_channels // self.groups, height, width, -1)
