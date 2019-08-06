@@ -41,7 +41,8 @@
     
 | Datasets | Model | Accuracy | Parameters (My Model, Paper Model)
 | :---: | :---: | :---: | :---: |
-CIFAR-10 | ResNet 26 (WORK IN PROCESS) | 89.45% (WORK IN PROCESS) | 8.30M, -
+CIFAR-10 | ResNet 26 | 89.45% | 8.30M, -
+CIFAR-10 | ResNet 26 + stem | 89.29% | 8.30M, -
 CIFAR-10 | ResNet 38 (WORK IN PROCESS) | 89.46% | 12.1M, -
 CIFAR-10 | ResNet 50 (WORK IN PROCESS) | | 16.0M, -
 IMAGENET | ResNet 26 (WORK IN PROCESS) | | 10.3M, 10.3M
