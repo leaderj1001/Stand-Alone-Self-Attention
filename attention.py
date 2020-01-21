@@ -37,8 +37,8 @@ class AttentionConv(nn.Module):
         k_out = k_out.unfold(2, self.kernel_size, self.stride).unfold(3, self.kernel_size, self.stride)
         v_out = v_out.unfold(2, self.kernel_size, self.stride).unfold(3, self.kernel_size, self.stride)
 
-        v_out_h, v_out_w = v_out.split(self.out_channels // 2, dim=1)
-        v_out = torch.cat((v_out_h + self.rel_h, v_out_w + self.rel_w), dim=1)
+        k_out_h, k_out_w = k_out.split(self.out_channels // 2, dim=1)
+        k_out = torch.cat((k_out_h + self.rel_h, k_out_w + self.rel_w), dim=1)
 
         k_out = k_out.contiguous().view(batch, self.groups, self.out_channels // self.groups, height, width, -1)
         v_out = v_out.contiguous().view(batch, self.groups, self.out_channels // self.groups, height, width, -1)
