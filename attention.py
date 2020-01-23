@@ -21,7 +21,7 @@ class AttentionConv(nn.Module):
         self.rel_w = nn.Parameter(torch.randn(out_channels // 2, 1, 1, 1, kernel_size), requires_grad=True)
 
         self.key_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
-        self.query_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
+        self.query_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=bias)
         self.value_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
 
         self.reset_parameters()
@@ -37,6 +37,7 @@ class AttentionConv(nn.Module):
         k_out = k_out.unfold(2, self.kernel_size, self.stride).unfold(3, self.kernel_size, self.stride)
         v_out = v_out.unfold(2, self.kernel_size, self.stride).unfold(3, self.kernel_size, self.stride)
 
+        height, width = height // self.stride, width // self.stride
         k_out_h, k_out_w = k_out.split(self.out_channels // 2, dim=1)
         k_out = torch.cat((k_out_h + self.rel_h, k_out_w + self.rel_w), dim=1)
 
@@ -77,7 +78,7 @@ class AttentionStem(nn.Module):
         self.emb_mix = nn.Parameter(torch.randn(m, out_channels // groups), requires_grad=True)
 
         self.key_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
-        self.query_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
+        self.query_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=bias)
         self.value_conv = nn.ModuleList([nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias) for _ in range(m)])
 
         self.reset_parameters()
@@ -94,6 +95,7 @@ class AttentionStem(nn.Module):
         k_out = k_out.unfold(2, self.kernel_size, self.stride).unfold(3, self.kernel_size, self.stride)
         v_out = v_out.unfold(3, self.kernel_size, self.stride).unfold(4, self.kernel_size, self.stride)
 
+        height, width = height // self.stride, width // self.stride
         k_out = k_out[:, :, :height, :width, :, :]
         v_out = v_out[:, :, :, :height, :width, :, :]
 
