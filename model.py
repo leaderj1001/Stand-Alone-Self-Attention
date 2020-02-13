@@ -119,6 +119,14 @@ def ResNet50(num_classes=1000, stem=False):
     return Model(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, stem=stem)
 
 
+def ResNet101(num_classes=1000, stem=False):
+    return Model(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, stem=stem)
+
+
+def ResNet152(num_classes=1000, stem=False):
+    return Model(Bottleneck, [3, 4, 36, 3], num_classes=num_classes, stem=stem)
+
+
 def get_model_parameters(model):
     total_parameters = 0
     for layer in list(model.parameters()):
